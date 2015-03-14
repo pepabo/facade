@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "sub command"
+echo "hello"
