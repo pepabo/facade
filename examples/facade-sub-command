@@ -6,5 +6,5 @@ echo "sub command started"
 echo "woke up"
 echo "error 1" 1>&2
 echo "error 2" 1>&2
-sleep 1
+sleep 3
 echo "finish"

@@ -24,16 +24,16 @@ func Run() {
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fatal(err.Error())
-		return
+		os.Exit(1)
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		fatal(err.Error())
-		return
+		os.Exit(1)
 	}
 	if err = cmd.Start(); err != nil {
 		fatal(err.Error())
-		return
+		os.Exit(1)
 	}
 
 	go readFrom(stdout, info)
@@ -41,7 +41,7 @@ func Run() {
 
 	if err = cmd.Wait(); err != nil {
 		fatal(err.Error())
-		return
+		os.Exit(1)
 	}
 }
 
