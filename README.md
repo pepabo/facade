@@ -25,7 +25,7 @@ func main() {
 
 ## Logging
 
-façade takes over STDOUT and STDERR of sub command and emits it in some pretty manner.
+façade takes over STDOUT and STDERR of sub command and emits outputs from them in some pretty manner.
 
 ## License
 

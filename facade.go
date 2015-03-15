@@ -1,10 +1,10 @@
 package facade
 
 import (
-	"bytes"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/mattn/go-colorable"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -20,17 +20,46 @@ func Run() {
 	sub := os.Args[1]
 	full := fmt.Sprintf("%s-%s", me, sub)
 
-	var buf bytes.Buffer
 	cmd := exec.Command(full, os.Args[2:]...)
-	cmd.Stdout = &buf
-
-	err := cmd.Run()
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fatal(err.Error())
 		return
 	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		fatal(err.Error())
+		return
+	}
+	if err = cmd.Start(); err != nil {
+		fatal(err.Error())
+		return
+	}
 
-	info(buf.String())
+	go readFrom(stdout, info)
+	go readFrom(stderr, fatal)
+
+	if err = cmd.Wait(); err != nil {
+		fatal(err.Error())
+		return
+	}
+}
+
+func readFrom(in io.ReadCloser, logger func(string)) {
+	b := make([]byte, 1024)
+	for {
+		n, err := in.Read(b)
+		if n > 0 {
+			if err != nil {
+				if err == io.EOF {
+					in.Close()
+				}
+			}
+			logger(string(b[:n]))
+		} else {
+			in.Close()
+		}
+	}
 }
 
 func info(s string) {
