@@ -1,6 +1,6 @@
 # façade
 
-This library adds a git-like sub command feature into your command with just one line.
+This library adds a git-like sub command feature into your command.
 
 ## Usage
 
@@ -14,7 +14,14 @@ import (
 )
 
 func main() {
-	facade.Run()
+	f := &facade.Facade{}
+
+        // If `Env` set, the key-values will be injected into the environment variables which affects sub command.
+	f.Env = map[string]string{
+		"FACADE_FOO": "123",
+		"FACADE_BAR": "Bar Value",
+	}
+	f.Run()
 }
 ```
 
