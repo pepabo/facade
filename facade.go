@@ -15,7 +15,7 @@ func init() {
 }
 
 type Facade struct {
-	Environment map[string]string
+	Env map[string]string
 }
 
 func (f *Facade) Run() {
@@ -25,9 +25,9 @@ func (f *Facade) Run() {
 	full := fmt.Sprintf("%s-%s", me, sub)
 
 	cmd := exec.Command(full, os.Args[2:]...)
-	if f.Environment != nil {
+	if f.Env != nil {
 		newenv := os.Environ()
-		for k, v := range f.Environment {
+		for k, v := range f.Env {
 			newenv = append(newenv, fmt.Sprintf("%s=%s", k, v))
 		}
 		cmd.Env = newenv
