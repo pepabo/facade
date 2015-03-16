@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/kentaro/facade"
+	"github.com/pepabo/facade"
 )
 
 func main() {

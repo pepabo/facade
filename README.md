@@ -10,7 +10,7 @@ Just call `facade.Run()` in your main file like below:
 package main
 
 import (
-	"github.com/kentaro/facade"
+	"github.com/pepabo/facade"
 )
 
 func main() {
