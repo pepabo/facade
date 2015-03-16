@@ -20,6 +20,30 @@ type Facade struct {
 	Env map[string]string
 }
 
+func (f *Facade) Run() {
+	var subCommand string
+	if len(os.Args) > 1 {
+		subCommand = os.Args[1]
+	}
+
+	if subCommand == "" {
+		help()
+	} else {
+		if b := builtins[subCommand]; b != nil {
+			b()
+		} else {
+			f.dispatch(subCommand)
+		}
+	}
+
+	os.Exit(0)
+}
+
+func Run() {
+	f := &Facade{}
+	f.Run()
+}
+
 var builtins = map[string]func(){
 	"help": help,
 	"list": list,
@@ -80,30 +104,6 @@ func list() {
 	} else {
 		println("No sub commands found")
 	}
-}
-
-func (f *Facade) Run() {
-	var subCommand string
-	if len(os.Args) > 1 {
-		subCommand = os.Args[1]
-	}
-
-	if subCommand == "" {
-		help()
-	} else {
-		if b := builtins[subCommand]; b != nil {
-			b()
-		} else {
-			f.dispatch(subCommand)
-		}
-	}
-
-	os.Exit(0)
-}
-
-func Run() {
-	f := &Facade{}
-	f.Run()
 }
 
 func (f *Facade) dispatch(subCommand string) {
