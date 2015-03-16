@@ -19,10 +19,6 @@ type Facade struct {
 }
 
 func (d *Facade) Run() {
-
-}
-
-func Run() {
 	chunks := strings.Split(os.Args[0], string(os.PathSeparator))
 	me := chunks[len(chunks)-1]
 	sub := os.Args[1]
@@ -51,6 +47,11 @@ func Run() {
 		fatal(err.Error())
 		os.Exit(1)
 	}
+}
+
+func Run() {
+	f := &Facade{}
+	f.Run()
 }
 
 func readFrom(in io.ReadCloser, logger func(string)) {
