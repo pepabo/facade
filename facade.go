@@ -7,7 +7,9 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"sort"
 	"strings"
+	"sync"
 )
 
 func init() {
@@ -16,14 +18,6 @@ func init() {
 
 type Facade struct {
 	Env map[string]string
-}
-
-var builtins = map[string]func(){
-	"help": help,
-}
-
-func help() {
-	fmt.Printf("Usage: $ %s sub-command args...\n", me())
 }
 
 func (f *Facade) Run() {
@@ -48,6 +42,68 @@ func (f *Facade) Run() {
 func Run() {
 	f := &Facade{}
 	f.Run()
+}
+
+var builtins = map[string]func(){
+	"help": help,
+	"list": list,
+}
+
+func help() {
+	fmt.Printf("Usage: $ %s sub-command args...\n", me())
+}
+
+func list() {
+	prefix := fmt.Sprintf("%s-", me())
+
+	results := make(chan os.FileInfo)
+	stop := make(chan struct{})
+
+	var wg sync.WaitGroup
+	for _, p := range strings.Split(os.Getenv("PATH"), ":") {
+		wg.Add(1)
+		go func(p string) {
+			defer wg.Done()
+			d, err := os.Open(p)
+			if err != nil {
+				return
+			}
+			defer d.Close()
+
+			files, err := d.Readdir(-1)
+			if err != nil {
+				return
+			}
+
+			<-stop
+
+			for _, f := range files {
+				if !f.IsDir() && strings.HasPrefix(f.Name(), prefix) {
+					results <- f
+				}
+			}
+		}(p)
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+	close(stop)
+
+	var commands []string
+	for f := range results {
+		commands = append(commands, strings.TrimPrefix(f.Name(), prefix))
+	}
+
+	if len(commands) > 0 {
+		sort.Strings(commands)
+		for _, c := range commands {
+			println(c)
+		}
+	} else {
+		println("No sub commands found.")
+	}
 }
 
 func (f *Facade) dispatch(subCommand string) {
