@@ -102,7 +102,7 @@ func list() {
 			println(c)
 		}
 	} else {
-		println("No sub commands found")
+		println("No sub commands found.")
 	}
 }
 
