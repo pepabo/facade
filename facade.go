@@ -14,6 +14,14 @@ func init() {
 	log.SetOutput(colorable.NewColorableStdout())
 }
 
+type Facade struct {
+	Environment map[string]string
+}
+
+func (d *Facade) Run() {
+
+}
+
 func Run() {
 	chunks := strings.Split(os.Args[0], string(os.PathSeparator))
 	me := chunks[len(chunks)-1]
