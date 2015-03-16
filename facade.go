@@ -18,13 +18,40 @@ type Facade struct {
 	Env map[string]string
 }
 
-func (f *Facade) Run() {
-	chunks := strings.Split(os.Args[0], string(os.PathSeparator))
-	me := chunks[len(chunks)-1]
-	sub := os.Args[1]
-	full := fmt.Sprintf("%s-%s", me, sub)
+var builtins = map[string]func(){
+	"help": help,
+}
 
-	cmd := exec.Command(full, os.Args[2:]...)
+func help() {
+	fmt.Printf("Usage: $ %s sub-command args...\n", me())
+}
+
+func (f *Facade) Run() {
+	var subCommand string
+	if len(os.Args) > 1 {
+		subCommand = os.Args[1]
+	}
+
+	if subCommand == "" {
+		help()
+	} else {
+		if b := builtins[subCommand]; b != nil {
+			b()
+		} else {
+			f.dispatch(subCommand)
+		}
+	}
+
+	os.Exit(0)
+}
+
+func Run() {
+	f := &Facade{}
+	f.Run()
+}
+
+func (f *Facade) dispatch(subCommand string) {
+	cmd := exec.Command(fmt.Sprintf("%s-%s", me(), subCommand), os.Args[2:]...)
 	if f.Env != nil {
 		newenv := os.Environ()
 		for k, v := range f.Env {
@@ -57,9 +84,9 @@ func (f *Facade) Run() {
 	}
 }
 
-func Run() {
-	f := &Facade{}
-	f.Run()
+func me() string {
+	chunks := strings.Split(os.Args[0], string(os.PathSeparator))
+	return chunks[len(chunks)-1]
 }
 
 func readFrom(in io.ReadCloser, logger func(string)) {
