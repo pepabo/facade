@@ -14,13 +14,25 @@ func init() {
 	log.SetOutput(colorable.NewColorableStdout())
 }
 
-func Run() {
+type Facade struct {
+	Env map[string]string
+}
+
+func (f *Facade) Run() {
 	chunks := strings.Split(os.Args[0], string(os.PathSeparator))
 	me := chunks[len(chunks)-1]
 	sub := os.Args[1]
 	full := fmt.Sprintf("%s-%s", me, sub)
 
 	cmd := exec.Command(full, os.Args[2:]...)
+	if f.Env != nil {
+		newenv := os.Environ()
+		for k, v := range f.Env {
+			newenv = append(newenv, fmt.Sprintf("%s=%s", k, v))
+		}
+		cmd.Env = newenv
+	}
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fatal(err.Error())
@@ -43,6 +55,11 @@ func Run() {
 		fatal(err.Error())
 		os.Exit(1)
 	}
+}
+
+func Run() {
+	f := &Facade{}
+	f.Run()
 }
 
 func readFrom(in io.ReadCloser, logger func(string)) {
