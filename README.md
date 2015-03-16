@@ -16,7 +16,7 @@ import (
 func main() {
 	f := &facade.Facade{}
 
-        // If `Env` set, the key-values will be injected into the environment variables which affects sub command.
+	// If `Env` set, the key-values will be injected into the environment variables which affects sub command.
 	f.Env = map[string]string{
 		"FACADE_FOO": "123",
 		"FACADE_BAR": "Bar Value",
