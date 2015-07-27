@@ -1,9 +1,11 @@
 package facade
 
 import (
+	"bufio"
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/mattn/go-colorable"
+	"gopkg.in/pipe.v2"
 	"io"
 	"os"
 	"os/exec"
@@ -116,6 +118,11 @@ func (f *Facade) dispatch(subCommand string) {
 		cmd.Env = newenv
 	}
 
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		fatal(err.Error())
+		os.Exit(1)
+	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		fatal(err.Error())
@@ -134,9 +141,29 @@ func (f *Facade) dispatch(subCommand string) {
 	go readFrom(stdout, info)
 	go readFrom(stderr, fatal)
 
-	if err = cmd.Wait(); err != nil {
-		fatal(err.Error())
-		os.Exit(1)
+	go func() {
+		if err = cmd.Wait(); err != nil {
+			fatal(err.Error())
+			os.Exit(1)
+		} else {
+			os.Exit(0)
+		}
+	}()
+
+	for {
+		p := pipe.Line(
+			pipe.Read(os.Stdin),
+			pipe.Write(stdin),
+		)
+		if err := pipe.Run(p); err != nil {
+			fatal(err.Error())
+			os.Exit(1)
+		}
+		if s, err := pipe.Output(p); err != nil {
+			fatal(string(s))
+			fatal(err.Error())
+			os.Exit(1)
+		}
 	}
 }
 
@@ -146,19 +173,12 @@ func me() string {
 }
 
 func readFrom(in io.ReadCloser, logger func(string)) {
-	b := make([]byte, 1024)
-	for {
-		n, err := in.Read(b)
-		if n > 0 {
-			if err != nil {
-				if err == io.EOF {
-					in.Close()
-				}
-			}
-			logger(string(b[:n]))
-		} else {
-			in.Close()
-		}
+	scanner := bufio.NewScanner(in)
+	for scanner.Scan() {
+		logger(scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		in.Close()
 	}
 }
 
