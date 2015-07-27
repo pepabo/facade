@@ -1,0 +1,6 @@
+#!/bin/sh
+echo "input: "
+read  input
+echo "output: $input"
+
+exit
