@@ -174,6 +174,7 @@ func me() string {
 
 func readFrom(in io.ReadCloser, logger func(string)) {
 	scanner := bufio.NewScanner(in)
+	scanner.Split(bufio.ScanWords)
 	for scanner.Scan() {
 		logger(scanner.Text())
 	}
